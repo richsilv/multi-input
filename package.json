@@ -4,6 +4,7 @@
   "private": true,
   "main": "src/index.tsx",
   "dependencies": {
+    "create-emotion": "9.2.6",
     "downshift": "2.2.2",
     "emotion": "9.2.9",
     "fuzzysearch": "1.0.3",

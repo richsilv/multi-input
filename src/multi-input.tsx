@@ -1,19 +1,85 @@
 import * as React from "react";
 import Downshift, { ControllerStateAndHelpers } from "downshift";
 import * as keycode from "keycode";
+import styled from "react-emotion";
+import { Interpolation } from "create-emotion";
 
 const fuzzysearch = require("fuzzysearch");
+
+const MultiSelectContainer = styled("div")(
+  {
+    overflow: "visible",
+    width: "100%",
+    height: "auto",
+    position: "relative",
+    zIindex: 1
+  },
+  (props: any) => (props.customStyles ? props.customStyles.container : null)
+);
+
+const Results = styled("div")(
+  {
+    position: "absolute",
+    left: 0,
+    top: "100%",
+    width: "100%",
+    overflowY: "auto",
+    maxHeight: "50vh"
+  },
+  (props: any) => (props.customStyles ? props.customStyles.results : null)
+);
+
+const Input = styled("input")((props: any) => ({
+  border: "none",
+  outline: "none",
+  outlineWidth: 0,
+  outlineColor: "transparent",
+  width: "auto",
+  flexGrow: 1,
+  margin: "0.25em 0.5em 0.25em 0",
+  padding: "0.25em"
+}));
+
+const InputContainer = styled("div")(
+  {
+    overflowX: "hidden",
+    width: "100%",
+    height: "100%",
+    minHeight: "2.25em",
+    position: "relative",
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
+    alignContent: "flex-start",
+    padding: "calc(0.125em - 1px) calc(0.375em - 1px)",
+
+    ":focus-within": {
+      color: "red",
+      borderColor: "red"
+    }
+  },
+  (props: any) => (props.customStyles ? props.customStyles.input : null)
+);
+
+const ListItem = styled("li")(
+  {
+    cursor: "pointer"
+  },
+  (props: any) => (props.customStyles ? props.customStyles.listItem : null),
+  (props: any) =>
+    props.customStyles && props.active ? props.customStyles.hover : null
+);
 
 interface IMultiSelectProps<T extends object> {
   readonly options: Set<T>;
   readonly optionToString: (item: T) => string;
   readonly onChange: (selection: Set<T>) => void;
-  readonly customClasses: {
-    container: string;
-    input: string;
-    results: string;
-    listItem: string;
-    hover: string;
+  readonly customStyles?: {
+    container?: Interpolation;
+    input?: Interpolation;
+    results?: Interpolation;
+    listItem?: Interpolation;
+    hover?: Interpolation;
   };
   readonly defaultIsOpen?: boolean;
   readonly selected?: Set<T>;
@@ -60,6 +126,7 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
   private renderMultiSelect = ({
     getInputProps,
     getItemProps,
+    getRootProps,
     isOpen,
     inputValue,
     highlightedIndex,
@@ -67,7 +134,6 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
   }: ControllerStateAndHelpers<T>) => {
     const { selected, value } = this.state;
     const {
-      customClasses,
       showOptionsWhenEmpty,
       placeholder,
       onFocus,
@@ -82,33 +148,27 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
       return (
         (!inputValue && showOptionsWhenEmpty) ||
         (inputValue &&
-          !selected.has(option!) &&
+          !selected.has(option) &&
           (matchOption
             ? matchOption(inputValue, option!)
             : fuzzysearch(
                 inputValue.toLowerCase(),
-                optionToString(option!).toLowerCase()
+                optionToString(option).toLowerCase()
               )))
       );
     });
 
-    let index: number = 0;
     const optionElements = filteredOptions.map(item => {
       const displayedItem = optionToString(item!);
-      const className =
-        customClasses.listItem +
-        " list-item" +
-        (index++ === highlightedIndex ? ` ${customClasses.hover}` : "");
       return (
-        <div
+        <ListItem
           {...getItemProps({ item })}
           title={displayedItem}
           key={displayedItem}
-          className={className}
           tabIndex="0"
         >
           {displayedItem}
-        </div>
+        </ListItem>
       );
     });
 
@@ -145,14 +205,10 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
     };
 
     return (
-      <div className={`multi-select ${customClasses.container}`}>
-        <div
-          className={`multi-select-input ${customClasses.input}`}
-          onClick={this.focusInput}
-        >
+      <MultiSelectContainer {...getRootProps({ refKey: "innerRef" })}>
+        <InputContainer onClick={this.focusInput}>
           {selectedOptionElements}
-          <input
-            className="invisible"
+          <Input
             {...getInputProps({
               placeholder,
               value,
@@ -164,29 +220,27 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
             })}
             ref={this.saveInputRef}
           />
-        </div>
+        </InputContainer>
         {isOpen && optionElements.length ? (
-          <div className={`results ${customClasses.results}`}>
-            {optionElements}
-          </div>
+          <Results>{optionElements}</Results>
         ) : null}
-      </div>
+      </MultiSelectContainer>
     );
-  }
+  };
 
   private saveInputRef = (element: HTMLInputElement | null) => {
     this.inputRef = element;
-  }
+  };
 
   private focusInput = () => {
     if (this.inputRef) {
       this.inputRef.focus();
     }
-  }
+  };
 
   private onChange = (selectedOptions: Set<T>) => {
     return this.props.onChange(selectedOptions);
-  }
+  };
 
   private onAdd = (option: T) => {
     this.setState(({ selected }) => {
@@ -194,7 +248,7 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
       this.onChange(newSelected);
       return { selected: newSelected, value: "" };
     });
-  }
+  };
 
   private onRemove = (option: T) => () => {
     this.setState(({ selected }) => {
@@ -203,9 +257,9 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
       this.onChange(newSelected);
       return { selected: newSelected };
     });
-  }
+  };
 
   private onInputChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({ value: event.currentTarget.value });
-  }
+  };
 }
