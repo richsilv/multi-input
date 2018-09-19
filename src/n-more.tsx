@@ -100,7 +100,7 @@ export default class NMore extends React.PureComponent<INMoreProps> {
         <ItemList>
           {names.map(name => (
             <Item>
-              <Tag>{name}</Tag>
+              <Tag onDelete={onDelete}>{name}</Tag>
             </Item>
           ))}
         </ItemList>

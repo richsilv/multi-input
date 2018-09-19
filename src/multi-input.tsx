@@ -138,6 +138,9 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
               selected: new Set(Array.from(selected).slice(0, -1))
             });
           }
+          break;
+        default:
+          break;
       }
     };
 
@@ -169,21 +172,21 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
         ) : null}
       </div>
     );
-  };
+  }
 
   private saveInputRef = (element: HTMLInputElement | null) => {
     this.inputRef = element;
-  };
+  }
 
   private focusInput = () => {
     if (this.inputRef) {
       this.inputRef.focus();
     }
-  };
+  }
 
   private onChange = (selectedOptions: Set<T>) => {
     return this.props.onChange(selectedOptions);
-  };
+  }
 
   private onAdd = (option: T) => {
     this.setState(({ selected }) => {
@@ -191,7 +194,7 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
       this.onChange(newSelected);
       return { selected: newSelected, value: "" };
     });
-  };
+  }
 
   private onRemove = (option: T) => () => {
     this.setState(({ selected }) => {
@@ -200,9 +203,9 @@ export default class MultiSelect<T extends object> extends React.PureComponent<
       this.onChange(newSelected);
       return { selected: newSelected };
     });
-  };
+  }
 
   private onInputChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({ value: event.currentTarget.value });
-  };
+  }
 }
