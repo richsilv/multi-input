@@ -6,6 +6,36 @@ import { Interpolation } from "create-emotion";
 
 const fuzzysearch = require("fuzzysearch");
 
+interface ICustomStyles {
+  customStyles?: {
+    container?: Interpolation;
+    input?: Interpolation;
+    results?: Interpolation;
+    listItem?: Interpolation;
+    hover?: Interpolation;
+  };
+}
+
+interface IMultiSelectProps<T extends object> extends ICustomStyles {
+  readonly options: Set<T>;
+  readonly optionToString: (item: T) => string;
+  readonly onChange: (selection: Set<T>) => void;
+  readonly defaultIsOpen?: boolean;
+  readonly selected?: Set<T>;
+  readonly placeholder?: string;
+  readonly showOptionsWhenEmpty?: boolean;
+  readonly matchOption?: (inputValue: string, option: T) => boolean;
+  readonly onBlur?: () => void;
+  readonly onInputChange?: (event: React.FormEvent<HTMLInputElement>) => void;
+  readonly onFocus?: () => void;
+  readonly onKeyUp?: (event: React.KeyboardEvent<HTMLElement>) => void;
+}
+
+interface IMultiSelectState<T> {
+  readonly selected: Set<T>;
+  readonly value: string;
+}
+
 const MultiSelectContainer = styled("div")(
   {
     overflow: "visible",
@@ -14,7 +44,8 @@ const MultiSelectContainer = styled("div")(
     position: "relative",
     zIindex: 1
   },
-  (props: any) => (props.customStyles ? props.customStyles.container : null)
+  (props: ICustomStyles) =>
+    props.customStyles ? props.customStyles.container : null
 );
 
 const Results = styled("div")(
@@ -26,10 +57,11 @@ const Results = styled("div")(
     overflowY: "auto",
     maxHeight: "50vh"
   },
-  (props: any) => (props.customStyles ? props.customStyles.results : null)
+  (props: ICustomStyles) =>
+    props.customStyles ? props.customStyles.results : null
 );
 
-const Input = styled("input")((props: any) => ({
+const Input = styled("input")((props: ICustomStyles) => ({
   border: "none",
   outline: "none",
   outlineWidth: 0,
@@ -58,44 +90,23 @@ const InputContainer = styled("div")(
       borderColor: "red"
     }
   },
-  (props: any) => (props.customStyles ? props.customStyles.input : null)
+  (props: ICustomStyles) =>
+    props.customStyles ? props.customStyles.input : null
 );
+
+interface IListItemProps extends ICustomStyles {
+  active: boolean;
+}
 
 const ListItem = styled("li")(
   {
     cursor: "pointer"
   },
-  (props: any) => (props.customStyles ? props.customStyles.listItem : null),
-  (props: any) =>
+  (props: ICustomStyles) =>
+    props.customStyles ? props.customStyles.listItem : null,
+  (props: IListItemProps) =>
     props.customStyles && props.active ? props.customStyles.hover : null
 );
-
-interface IMultiSelectProps<T extends object> {
-  readonly options: Set<T>;
-  readonly optionToString: (item: T) => string;
-  readonly onChange: (selection: Set<T>) => void;
-  readonly customStyles?: {
-    container?: Interpolation;
-    input?: Interpolation;
-    results?: Interpolation;
-    listItem?: Interpolation;
-    hover?: Interpolation;
-  };
-  readonly defaultIsOpen?: boolean;
-  readonly selected?: Set<T>;
-  readonly placeholder?: string;
-  readonly showOptionsWhenEmpty?: boolean;
-  readonly matchOption?: (inputValue: string, option: T) => boolean;
-  readonly onBlur?: () => void;
-  readonly onInputChange?: (event: React.FormEvent<HTMLInputElement>) => void;
-  readonly onFocus?: () => void;
-  readonly onKeyUp?: (event: React.KeyboardEvent<HTMLElement>) => void;
-}
-
-interface IMultiSelectState<T> {
-  readonly selected: Set<T>;
-  readonly value: string;
-}
 
 export default class MultiSelect<T extends object> extends React.PureComponent<
   IMultiSelectProps<T>,
